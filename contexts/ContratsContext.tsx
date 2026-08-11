@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useRef, useEffect, useCallback, Re
 import { Contrat } from "../types/contrat";
 import { chargerParCle, sauvegarderParCle, cleProfilData } from "../utils/storage";
 import { useProfils } from "./ProfilsContext";
+import { useEmployeurs } from "./EmployeursContext";
 
 interface ContratsContextType {
   contrats: Contrat[];
@@ -34,7 +35,8 @@ function maxId(contrats: Contrat[]): number {
 }
 
 export function ContratsProvider({ children }: { children: ReactNode }) {
-  const { profilActifId } = useProfils();
+  const { profilActifId, versionDonneesExternes } = useProfils();
+  const { ajouterEmployeur } = useEmployeurs();
   const [contrats, setContrats] = useState<Contrat[]>([]);
   const [chargementTermine, setChargementTermine] = useState(false);
   const nextId = useRef(1);
@@ -66,7 +68,7 @@ export function ContratsProvider({ children }: { children: ReactNode }) {
     });
 
     return () => { ignore = true; };
-  }, [profilActifId]);
+  }, [profilActifId, versionDonneesExternes]);
 
   const persister = useCallback((nouveauxContrats: Contrat[]) => {
     const id = profilActifIdRef.current;
@@ -74,6 +76,8 @@ export function ContratsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const ajouterContrat = useCallback((contratSansId: Omit<Contrat, "id">) => {
+    ajouterEmployeur(contratSansId.employeur);
+
     const nouveau: Contrat = {
       ...contratSansId,
       id: String(nextId.current++),
@@ -83,9 +87,11 @@ export function ContratsProvider({ children }: { children: ReactNode }) {
       persister(maj);
       return maj;
     });
-  }, [persister]);
+  }, [persister, ajouterEmployeur]);
 
   const modifierContrat = useCallback((id: string, contratSansId: Omit<Contrat, "id">) => {
+    ajouterEmployeur(contratSansId.employeur);
+
     setContrats((prev) => {
       const maj = trierParDate(
         prev.map((c) => (c.id === id ? { ...contratSansId, id } : c))
@@ -93,7 +99,7 @@ export function ContratsProvider({ children }: { children: ReactNode }) {
       persister(maj);
       return maj;
     });
-  }, [persister]);
+  }, [persister, ajouterEmployeur]);
 
   const supprimerContrat = useCallback((id: string) => {
     setContrats((prev) => {

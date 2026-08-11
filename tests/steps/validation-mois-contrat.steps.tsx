@@ -11,6 +11,12 @@ jest.mock("react-native-calendars", () =>
 
 const feature = loadFeature("tests/features/validation-mois-contrat.feature");
 
+const fixerDateStep = (given: (pattern: RegExp, fn: (date: string) => void) => void) => {
+  given(/^nous sommes le "(.*)"$/, (date: string) => {
+    fixerDate(date);
+  });
+};
+
 defineFeature(feature, (test) => {
   beforeEach(() => {
     resetPickerCallbacks();
@@ -28,9 +34,7 @@ defineFeature(feature, (test) => {
   };
 
   test("Dates dans le même mois sont acceptées", ({ given, and, when, then }) => {
-    given(/^nous sommes le "(.*)"$/, (date: string) => {
-      fixerDate(date);
-    });
+    fixerDateStep(given);
 
     given("le formulaire de saisie est ouvert", async () => {
       await renderScreen();
@@ -51,9 +55,7 @@ defineFeature(feature, (test) => {
   });
 
   test("Dates sur deux mois différents affichent une erreur", ({ given, and, when, then }) => {
-    given(/^nous sommes le "(.*)"$/, (date: string) => {
-      fixerDate(date);
-    });
+    fixerDateStep(given);
 
     given("le formulaire de saisie est ouvert", async () => {
       await renderScreen();
@@ -74,9 +76,7 @@ defineFeature(feature, (test) => {
   });
 
   test("Dates sur deux mois différents ne créent pas de contrat", ({ given, and, when, then }) => {
-    given(/^nous sommes le "(.*)"$/, (date: string) => {
-      fixerDate(date);
-    });
+    fixerDateStep(given);
 
     given("le formulaire de saisie est ouvert", async () => {
       await renderScreen();
@@ -91,8 +91,11 @@ defineFeature(feature, (test) => {
       fireEvent.press(screen.getByText(texte));
     });
 
-    then("aucun contrat n'est ajouté", () => {
+    and(/^j'annule la saisie$/, () => {
       fireEvent.press(screen.getByText("Annuler"));
+    });
+
+    then("aucun contrat n'est ajouté", () => {
       expect(screen.getByText("Aucun contrat ni formation. Ajoute ton premier contrat !")).toBeTruthy();
     });
   });

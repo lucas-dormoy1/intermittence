@@ -9,10 +9,12 @@ import {
   Platform,
   Alert,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useContrats } from "../../contexts/ContratsContext";
 import { useProfils } from "../../contexts/ProfilsContext";
+import { useEmployeurs } from "../../contexts/EmployeursContext";
 import { useFormations } from "../../contexts/FormationsContext";
 import { useEnseignements } from "../../contexts/EnseignementsContext";
 import { Contrat, TypeHeures } from "../../types/contrat";
@@ -64,6 +66,7 @@ function partitionnerParDate<T extends { dateFin: string }>(items: T[]) {
 export default function ContratsScreen() {
   const { contrats, ajouterContrat, modifierContrat, supprimerContrat } = useContrats();
   const { profilActif: profil } = useProfils();
+  const { employeurs } = useEmployeurs();
   const { formations, ajouterFormation, modifierFormation, supprimerFormation } = useFormations();
   const { enseignements, ajouterEnseignement, modifierEnseignement, supprimerEnseignement } = useEnseignements();
   const estAnnexe10 = profil?.annexe === "10";
@@ -86,6 +89,14 @@ export default function ContratsScreen() {
   const [enseignementEnEdition, setEnseignementEnEdition] = useState<string | null>(null);
   const [erreurs, setErreurs] = useState<Partial<Record<ChampContrat | ChampFormation | ChampEnseignement, boolean>>>({});
   const [erreurMois, setErreurMois] = useState<string | null>(null);
+
+  // Suggestions d'employeurs basées sur la saisie
+  const suggestionsEmployeurs = useMemo(() => {
+    if (!employeur.trim() || employeur.length < 2) return [];
+    return employeurs
+      .filter(e => e.nom.toLowerCase().includes(employeur.toLowerCase()) && e.nom.toLowerCase() !== employeur.toLowerCase())
+      .slice(0, 3); // On limite à 3 suggestions pour ne pas encombrer
+  }, [employeur, employeurs]);
 
   const { actifs: contratsActifs, passes: contratsPasses } = useMemo(
     () => partitionnerParDate(contrats), [contrats]
@@ -405,6 +416,22 @@ export default function ContratsScreen() {
           value={employeur}
           onChangeText={(v) => { setEmployeur(v); setErreurs((e) => ({ ...e, employeur: false })); }}
         />
+        {suggestionsEmployeurs.length > 0 && (
+          <View style={localStyles.suggestions}>
+            {suggestionsEmployeurs.map((s) => (
+              <Pressable
+                key={s.id}
+                style={localStyles.suggestionItem}
+                onPress={() => {
+                  setEmployeur(s.nom);
+                  setErreurs((e) => ({ ...e, employeur: false }));
+                }}
+              >
+                <Text style={localStyles.suggestionText}>{s.nom}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
       {renderDateField()}
       {estAnnexe10 && (
@@ -809,3 +836,23 @@ export default function ContratsScreen() {
     </View>
   );
 }
+
+const localStyles = StyleSheet.create({
+  suggestions: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    overflow: "hidden",
+  },
+  suggestionItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  suggestionText: {
+    color: "#374151",
+    fontSize: 14,
+  },
+});

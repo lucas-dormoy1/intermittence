@@ -1,222 +1,71 @@
 import { defineFeature, loadFeature } from "jest-cucumber";
-import { render, fireEvent, screen, within, act } from "@testing-library/react-native";
+import { screen, within } from "@testing-library/react-native";
 import VueMensuelleScreen from "../../app/(tabs)/vue-mensuelle";
-import { ContratsProvider, useContrats } from "../../contexts/ContratsContext";
-import { ProfilsProvider, useProfils } from "../../contexts/ProfilsContext";
-import { FormationsProvider } from "../../contexts/FormationsContext";
-import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
-import { ProfilSansId } from "../../types/profil";
-import { Contrat } from "../../types/contrat";
+import {
+  resetCaptures,
+  renderEcranMensuel,
+  fixerDateStep,
+  unProfilExiste,
+  ajouterContrats,
+} from "../helpers/simulationMensuelle";
 import { ContratRow } from "../helpers/types";
-import { fixerDate } from "../helpers/form";
-import { flushAsync } from "../helpers/act";
 
-const mockPush = jest.fn();
+const renderScreen = () => renderEcranMensuel(VueMensuelleScreen);
 
-jest.mock("expo-router", () => ({
-  useRouter: () => ({ push: mockPush }),
-}));
-
-type ProfilRow = {
-  Annexe: string;
-  Heures: string;
-  Salaire: string;
-  "Date anniversaire": string;
-};
-
-let capturedAjouterContrat: ((c: Omit<Contrat, "id">) => void) | null = null;
-let capturedAjouterProfil: ((p: ProfilSansId) => void) | null = null;
-
-function Setup() {
-  const { ajouterProfil } = useProfils();
-  const { ajouterContrat } = useContrats();
-  capturedAjouterContrat = ajouterContrat;
-  capturedAjouterProfil = ajouterProfil;
-  return <VueMensuelleScreen />;
-}
-
-const renderScreen = async () => {
-  const result = render(
-    <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <Setup />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
-    </ProfilsProvider>
-  );
-  await flushAsync();
-  return result;
-};
-
-const fixerDateStep = (given: (pattern: RegExp, fn: (date: string) => void) => void) => {
-  given(/^nous sommes le "(.*)"$/, (date: string) => {
-    fixerDate(date);
-  });
-};
-
-const configurerProfil = async (row: ProfilRow) => {
-  act(() => {
-    capturedAjouterProfil!({
-      nom: "Test",
-      annexe: row.Annexe as "8" | "10",
-      aOuvertDroits: true,
-      heuresTravaillees: Number(row.Heures),
-      salaireReference: Number(row.Salaire),
-      dateAnniversaire: row["Date anniversaire"],
-      tauxCSG: "standard",
-      alsaceMoselle: false,
-    });
-  });
-  await flushAsync();
-};
-
-const ajouterContrats = (table: ContratRow[]) => {
-  table.forEach((row) => {
-    act(() => {
-      capturedAjouterContrat!({
-        employeur: row.Employeur,
-        dateDebut: row["Début"],
-        dateFin: row.Fin,
-        heures: Number(row.Heures),
-        salaireBrut: Number(row.Salaire),
-      });
-    });
-  });
+const carteAfficheTexte = (index: string, texte: string) => {
+  const carte = screen.getByTestId(`carte-recap-${index}`);
+  expect(within(carte).getByText(texte)).toBeTruthy();
 };
 
 const feature = loadFeature("tests/features/vue-mensuelle.feature");
 
 defineFeature(feature, (test) => {
   beforeEach(() => {
-    capturedAjouterContrat = null;
-    capturedAjouterProfil = null;
-    mockPush.mockClear();
+    resetCaptures();
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  test("Profil non configuré - invitation à configurer", ({ given, then }) => {
+  test("Le récap affiche toujours 12 mois glissants", ({ given, then }) => {
     fixerDateStep(given);
 
-    given("le profil n'est pas configuré", async () => {
+    given("un profil existe", async () => {
       await renderScreen();
+      await unProfilExiste();
     });
 
-    then("le message d'invitation à configurer le profil est visible", () => {
-      expect(screen.getByTestId("message-profil-manquant")).toBeTruthy();
-    });
-  });
-
-  test("Profil sans droits ARE - invitation à ouvrir ses droits", ({ given, then }) => {
-    fixerDateStep(given);
-
-    given("le profil est configuré sans droits ARE", async (table: { Nom: string; Annexe: string }[]) => {
-      await renderScreen();
-      act(() => {
-        capturedAjouterProfil!({
-          nom: table[0].Nom,
-          annexe: table[0].Annexe as "8" | "10",
-          aOuvertDroits: false,
-          tauxCSG: "standard",
-          alsaceMoselle: false,
-        });
-      });
-      await flushAsync();
-    });
-
-    then("le message d'invitation à ouvrir ses droits est visible", () => {
-      expect(screen.getByTestId("message-profil-manquant")).toBeTruthy();
-      expect(screen.getByTestId("message-profil-manquant").props.children).toBe(
-        "Ouvrez vos droits ARE pour voir la simulation"
-      );
-    });
-  });
-
-  test("12 cartes affichées avec profil configuré", ({ given, then }) => {
-    fixerDateStep(given);
-
-    given("le profil est configuré", async (table: ProfilRow[]) => {
-      await renderScreen();
-      configurerProfil(table[0]);
-    });
-
-    then("12 cartes de mois sont affichées", () => {
-      const cartes = screen.getAllByTestId(/^carte-mois-\d+$/);
+    then("12 cartes de récap sont affichées", () => {
+      const cartes = screen.getAllByTestId(/^carte-recap-\d+$/);
       expect(cartes).toHaveLength(12);
     });
   });
 
-  test("Heures travaillées affichées sur la carte d'un mois avec contrat", ({
-    given,
-    and,
-    then,
-  }) => {
+  test("Heures et salaire affichés pour un mois avec contrat", ({ given, and, then }) => {
     fixerDateStep(given);
 
-    given("le profil est configuré", async (table: ProfilRow[]) => {
+    given("un profil existe", async () => {
       await renderScreen();
-      configurerProfil(table[0]);
+      await unProfilExiste();
     });
 
     and("ces contrats existent", (table: ContratRow[]) => {
       ajouterContrats(table);
     });
 
-    then(
-      /^la carte du mois (\d+) affiche "(.*)"$/,
-      (index: string, texte: string) => {
-        const carte = screen.getByTestId(`carte-mois-${index}`);
-        expect(within(carte).getByText(texte)).toBeTruthy();
-      }
-    );
-
-    and(
-      /^la carte du mois (\d+) affiche "(.*)" pour les jours de formation$/,
-      (index: string, texte: string) => {
-        const carte = screen.getByTestId(`carte-mois-${index}`);
-        expect(within(carte).getByText(texte)).toBeTruthy();
-      }
-    );
+    then(/^la carte du mois (\d+) affiche "(.*)"$/, carteAfficheTexte);
+    and(/^la carte du mois (\d+) affiche "(.*)"$/, carteAfficheTexte);
   });
 
-  test("Jours indemnisés affichés sur la carte", ({ given, then }) => {
+  test("Le mois courant est marqué comme en cours", ({ given, then }) => {
     fixerDateStep(given);
 
-    given("le profil est configuré", async (table: ProfilRow[]) => {
+    given("un profil existe", async () => {
       await renderScreen();
-      configurerProfil(table[0]);
+      await unProfilExiste();
     });
 
-    then(
-      /^la carte du mois (\d+) affiche les jours indemnisés$/,
-      (index: string) => {
-        const carte = screen.getByTestId(`carte-mois-${index}`);
-        expect(within(carte).getByText("Jours indemnisés")).toBeTruthy();
-        const lignes = within(carte).getAllByText(/^\d+ j$/);
-        expect(lignes.length).toBeGreaterThanOrEqual(1);
-      }
-    );
-  });
-
-  test("Navigation vers le détail d'un mois", ({ given, when, then }) => {
-    fixerDateStep(given);
-
-    given("le profil est configuré", async (table: ProfilRow[]) => {
-      await renderScreen();
-      configurerProfil(table[0]);
-    });
-
-    when(/^je tape sur la carte du mois (\d+)$/, (index: string) => {
-      fireEvent.press(screen.getByTestId(`carte-mois-${index}`));
-    });
-
-    then(/^je suis redirigé vers "(.*)"$/, (route: string) => {
-      expect(mockPush).toHaveBeenCalledWith(route);
-    });
+    then(/^la carte du mois (\d+) affiche "(.*)"$/, carteAfficheTexte);
   });
 });

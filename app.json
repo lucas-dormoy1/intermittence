@@ -37,16 +37,17 @@
           "origin": "https://intermittence.app"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "extra": {
       "router": {
         "origin": "https://intermittence.app"
       },
       "eas": {
-        "projectId": "db1b2719-359f-4bf2-a94f-c3cf7c44deba"
+        "projectId": "44d280c1-faaa-4f7d-80a9-be322c4a9baa"
       }
-    },
-    "owner": "mimiche2"
+    }
   }
 }

@@ -2,7 +2,9 @@ import { defineFeature, loadFeature } from "jest-cucumber";
 import { render, fireEvent, screen } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EcranOnboarding from "../../components/EcranOnboarding";
+import { GoogleAuthProvider } from "../../contexts/GoogleAuthContext";
 import { ProfilsProvider } from "../../contexts/ProfilsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ContratsProvider } from "../../contexts/ContratsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
@@ -11,6 +13,9 @@ import { ddmmyyyyToIso } from "../helpers/date";
 import { flushAsync } from "../helpers/act";
 import { ProfilRow } from "../helpers/accueil";
 
+jest.mock("../../contexts/GoogleAuthContext", () =>
+  require("../helpers/mocks").mockGoogleAuthContextFactory()
+);
 jest.mock("@react-native-community/datetimepicker", () =>
   require("../helpers/mocks").mockDateTimePickerFactory()
 );
@@ -19,15 +24,19 @@ const feature = loadFeature("tests/features/onboarding.feature");
 
 const renderOnboarding = async () => {
   render(
-    <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <EcranOnboarding />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
-    </ProfilsProvider>
+    <GoogleAuthProvider>
+      <ProfilsProvider>
+        <EmployeursProvider>
+          <ContratsProvider>
+            <FormationsProvider>
+              <EnseignementsProvider>
+                <EcranOnboarding />
+              </EnseignementsProvider>
+            </FormationsProvider>
+          </ContratsProvider>
+        </EmployeursProvider>
+      </ProfilsProvider>
+    </GoogleAuthProvider>
   );
   await flushAsync();
 };

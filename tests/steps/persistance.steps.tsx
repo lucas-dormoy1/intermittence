@@ -3,6 +3,7 @@ import { render, screen, waitFor, RenderResult } from "@testing-library/react-na
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AccueilScreen from "../../app/(tabs)/index";
 import { ProfilsProvider } from "../../contexts/ProfilsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ContratsProvider } from "../../contexts/ContratsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
@@ -19,13 +20,15 @@ const feature = loadFeature("tests/features/persistance.feature");
 const renderAccueil = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <AccueilScreen />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <AccueilScreen />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();

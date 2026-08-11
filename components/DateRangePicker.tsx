@@ -89,9 +89,8 @@ export default function DateRangePicker({ initialStart, initialEnd, onConfirm, o
         setStartDate(day.dateString);
         setEndDate(null);
         setMarkedDates(buildMarkedDates(day.dateString));
-      } else if (day.dateString === startDate) {
-        return;
       } else {
+        // Cette partie gère maintenant les dates après OU égales à la date de début
         setEndDate(day.dateString);
         setMarkedDates(buildMarkedDates(startDate, day.dateString));
       }

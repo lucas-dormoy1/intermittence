@@ -2,25 +2,35 @@ import { defineFeature, loadFeature } from "jest-cucumber";
 import { render, screen, fireEvent } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import EcranOnboarding from "../../components/EcranOnboarding";
+import { GoogleAuthProvider } from "../../contexts/GoogleAuthContext";
 import { ProfilsProvider } from "../../contexts/ProfilsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ContratsProvider } from "../../contexts/ContratsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
 import { flushAsync } from "../helpers/act";
 
+jest.mock("../../contexts/GoogleAuthContext", () =>
+  require("../helpers/mocks").mockGoogleAuthContextFactory()
+);
+
 const feature = loadFeature("tests/features/donnees-test.feature");
 
 const renderOnboarding = async () => {
   render(
-    <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <EcranOnboarding />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
-    </ProfilsProvider>
+    <GoogleAuthProvider>
+      <ProfilsProvider>
+        <EmployeursProvider>
+          <ContratsProvider>
+            <FormationsProvider>
+              <EnseignementsProvider>
+                <EcranOnboarding />
+              </EnseignementsProvider>
+            </FormationsProvider>
+          </ContratsProvider>
+        </EmployeursProvider>
+      </ProfilsProvider>
+    </GoogleAuthProvider>
   );
   await flushAsync();
 };

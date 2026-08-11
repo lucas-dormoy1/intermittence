@@ -5,6 +5,7 @@ import {
 } from "@testing-library/react-native";
 import ContratsScreen from "../../app/(tabs)/contrats";
 import { ProfilsProvider } from "../../contexts/ProfilsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ContratsProvider } from "../../contexts/ContratsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
@@ -16,13 +17,15 @@ import { flushAsync } from "./act";
 export const renderScreen = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <ContratsScreen />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <ContratsScreen />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();

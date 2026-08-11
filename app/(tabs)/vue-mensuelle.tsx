@@ -1,115 +1,47 @@
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, FlatList } from "react-native";
 import { useMemo } from "react";
-import { useRouter } from "expo-router";
 import { useContrats } from "../../contexts/ContratsContext";
-import { useProfils } from "../../contexts/ProfilsContext";
-import { useFormations } from "../../contexts/FormationsContext";
-import { useEnseignements } from "../../contexts/EnseignementsContext";
-import {
-  calculerIndemnisationMensuelle,
-  IndemnisationMensuelle,
-} from "../../utils/calculerIndemnisationMensuelle";
+import { calculerRecapAnnuel, RecapMois } from "../../utils/calculerRecapAnnuel";
+import { formatMois } from "../../utils/formatMois";
 import { styles } from "../../styles/tabs/vue-mensuelle.styles";
 
-const NOMS_MOIS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-function formatMois(date: Date): string {
-  return `${NOMS_MOIS[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-function CarteMois({
-  mois,
-  onPress,
-}: {
-  mois: IndemnisationMensuelle;
-  onPress: () => void;
-}) {
+function CarteRecapMois({ recap }: { recap: RecapMois }) {
   return (
-    <TouchableOpacity
-      testID={`carte-mois-${mois.index}`}
-      style={styles.carte}
-      onPress={onPress}
-    >
-      <Text style={styles.carteTitre}>{formatMois(mois.mois)}</Text>
+    <View testID={`carte-recap-${recap.index}`} style={styles.carte}>
+      <Text style={styles.carteTitre}>
+        {formatMois(recap.mois)}
+        {recap.enCours ? " (en cours)" : ""}
+      </Text>
       <View style={styles.carteBody}>
         <View style={styles.ligne}>
           <Text style={styles.libelleValeur}>Heures travaillées</Text>
-          <Text style={styles.valeur}>{mois.heuresDuMois} h</Text>
+          <Text style={styles.valeur}>{recap.heures} h</Text>
         </View>
         <View style={styles.ligne}>
-          <Text style={styles.libelleValeur}>Jours de formation</Text>
-          <Text style={styles.valeur}>{mois.joursFormation} j</Text>
+          <Text style={styles.libelleValeur}>Salaire brut</Text>
+          <Text style={styles.valeur}>{recap.salaire} €</Text>
         </View>
-        {mois.joursEnseignement > 0 && (
-          <View style={styles.ligne}>
-            <Text style={styles.libelleValeur}>Jours d'enseignement</Text>
-            <Text style={styles.valeur}>{mois.joursEnseignement} j</Text>
-          </View>
-        )}
         <View style={styles.ligne}>
-          <Text style={styles.libelleValeur}>Jours indemnisés</Text>
-          <Text style={styles.valeur}>{mois.joursIndemnises} j</Text>
+          <Text style={styles.libelleValeur}>Contrats</Text>
+          <Text style={styles.valeur}>{recap.nombreContrats}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 export default function VueMensuelleScreen() {
   const { contrats } = useContrats();
-  const { profilActif: profil } = useProfils();
-  const { formations } = useFormations();
-  const { enseignements } = useEnseignements();
-  const router = useRouter();
 
-  const mois = useMemo(
-    () => (profil?.aOuvertDroits ? calculerIndemnisationMensuelle(profil, contrats, formations, enseignements) : []),
-    [profil, contrats, formations, enseignements]
-  );
-
-  if (!profil || !profil.aOuvertDroits) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.empty} testID="message-profil-manquant">
-          {!profil
-            ? "Configurez votre profil pour voir la simulation"
-            : "Ouvrez vos droits ARE pour voir la simulation"}
-        </Text>
-      </View>
-    );
-  }
+  const recap = useMemo(() => calculerRecapAnnuel(contrats), [contrats]);
 
   return (
     <FlatList
-      data={mois}
+      data={recap}
       keyExtractor={(item) => String(item.index)}
       contentContainerStyle={styles.liste}
       initialNumToRender={12}
-      renderItem={({ item }) => (
-        <CarteMois
-          mois={item}
-          onPress={() => router.push(`/mois/${item.index}` as any)}
-        />
-      )}
+      renderItem={({ item }) => <CarteRecapMois recap={item} />}
     />
   );
 }
-

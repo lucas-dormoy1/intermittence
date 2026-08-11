@@ -2,7 +2,9 @@ import { defineFeature, loadFeature } from "jest-cucumber";
 import { render, fireEvent, screen, act, waitFor } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GoogleAuthProvider } from "../../contexts/GoogleAuthContext";
 import { ProfilsProvider } from "../../contexts/ProfilsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ContratsProvider } from "../../contexts/ContratsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
@@ -12,6 +14,9 @@ import { ProfilIntermittent } from "../../types/profil";
 import { profil as profilFactory } from "../helpers/factories";
 import { flushAsync } from "../helpers/act";
 
+jest.mock("../../contexts/GoogleAuthContext", () =>
+  require("../helpers/mocks").mockGoogleAuthContextFactory()
+);
 jest.mock("@react-native-community/datetimepicker", () =>
   require("../helpers/mocks").mockDateTimePickerFactory()
 );
@@ -45,16 +50,20 @@ const renderComposants = async (visible = false) => {
   });
 
   const result = render(
-    <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <BoutonProfil onPress={() => { panneauVisible = true; }} />
-            <PanneauProfils visible={panneauVisible} onFermer={onFermer} />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
-    </ProfilsProvider>
+    <GoogleAuthProvider>
+      <ProfilsProvider>
+        <EmployeursProvider>
+          <ContratsProvider>
+            <FormationsProvider>
+              <EnseignementsProvider>
+                <BoutonProfil onPress={() => { panneauVisible = true; }} />
+                <PanneauProfils visible={panneauVisible} onFermer={onFermer} />
+              </EnseignementsProvider>
+            </FormationsProvider>
+          </ContratsProvider>
+        </EmployeursProvider>
+      </ProfilsProvider>
+    </GoogleAuthProvider>
   );
   await flushAsync();
   return result;
@@ -65,16 +74,20 @@ const renderAvecPanneau = async (profils: ProfilIntermittent[], actifId: string)
   onFermer = jest.fn();
 
   const result = render(
-    <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <BoutonProfil onPress={() => {}} />
-            <PanneauProfils visible={true} onFermer={onFermer} />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
-    </ProfilsProvider>
+    <GoogleAuthProvider>
+      <ProfilsProvider>
+        <EmployeursProvider>
+          <ContratsProvider>
+            <FormationsProvider>
+              <EnseignementsProvider>
+                <BoutonProfil onPress={() => {}} />
+                <PanneauProfils visible={true} onFermer={onFermer} />
+              </EnseignementsProvider>
+            </FormationsProvider>
+          </ContratsProvider>
+        </EmployeursProvider>
+      </ProfilsProvider>
+    </GoogleAuthProvider>
   );
   await flushAsync();
   return result;

@@ -20,6 +20,7 @@ import {
 import { ProfilIntermittent } from "../../types/profil";
 import { styles, pageScrollStyle } from "../../styles/mois/moisIndex.styles";
 import { formaterHeures } from "../../utils/formatHeures";
+import { formatMois } from "../../utils/formatMois";
 import {
   InfoContenu,
   InfoModal,
@@ -27,25 +28,6 @@ import {
   buildInfoFranchiseCP,
   buildInfoFranchiseSalaire,
 } from "../../components/InfoFranchises";
-
-const NOMS_MOIS = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre",
-];
-
-function formatMois(date: Date): string {
-  return `${NOMS_MOIS[date.getMonth()]} ${date.getFullYear()}`;
-}
 
 function formatEuros(montant: number): string {
   return `${Math.round(montant)} €`;

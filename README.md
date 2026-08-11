@@ -10,6 +10,8 @@ Application mobile (Android & iOS) permettant aux intermittents du spectacle en 
 - **Vue mensuelle** — simulation mois par mois de la période d'indemnisation (12 mois)
 - **Détail par mois** — franchises CP et salaire, seuil de non-indemnisation, formules détaillées
 - **Profil intermittent** — annexe 8 ou 10, salaire de référence, taux CSG
+- **Multi-profils** — plusieurs profils intermittents dans la même app, chacun avec ses propres contrats/formations/enseignements ; export/import par fichier JSON pour partager un profil
+- **Sauvegarde Google Drive** — sauvegarder/restaurer un profil (avec ses données) sur le Google Drive de l'utilisateur, pour le retrouver sur un autre appareil (voir [Configuration Google Drive](#configuration-google-drive-optionnel))
 
 ## Stack technique
 
@@ -44,6 +46,22 @@ npm test
 npm run test:watch
 ```
 
+## Configuration Google Drive (optionnel)
+
+La sauvegarde/restauration de profil sur Google Drive nécessite un projet Google Cloud avec l'API Drive activée et deux identifiants OAuth (Web + Android).
+
+Ces 3 valeurs sont stockées de façon sécurisée en tant qu'[EAS Environment Variables](https://docs.expo.dev/eas/environment-variables/) (projet `@skaa14/intermittence`), pas dans le dépôt git. Pour les récupérer sur une machine :
+
+```bash
+npm install        # installe eas-cli (devDependency)
+npx eas login       # une seule fois par machine, avec le compte Expo skaa14
+npm run env:pull     # régénère .env.local à partir des variables EAS
+```
+
+Si les identifiants n'existent pas encore côté Google Cloud, copie `.env.example` en `.env.local` et renseigne-les manuellement, puis enregistre-les pour les autres machines avec `npx eas env:set --name <NOM> --value <valeur> --visibility sensitive --environment development --environment preview --environment production`.
+
+Sans configuration, le reste de l'app fonctionne normalement — seuls les boutons "Sauvegarder/Restaurer depuis Google Drive" sont inopérants. Détails du flow OAuth dans [docs/tech/04-oauth-google-drive.md](docs/tech/04-oauth-google-drive.md).
+
 ## Structure du projet
 
 ```
@@ -55,8 +73,8 @@ app/                    Routes (Expo Router)
 └── mois/
     └── [moisIndex].tsx Détail d'un mois d'indemnisation
 
-utils/                  Logique métier (calcul AJ, indemnisation mensuelle)
-contexts/               State partagé (contrats, profil)
+utils/                  Logique métier (calcul AJ, indemnisation mensuelle, sync Google Drive)
+contexts/               State partagé (contrats, formations, enseignements, employeurs, profils, auth Google)
 types/                  Interfaces TypeScript
 styles/                 Fichiers de styles séparés
 theme/                  Tokens (couleurs, polices)

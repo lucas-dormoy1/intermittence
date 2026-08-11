@@ -3,6 +3,7 @@ import { render, fireEvent, screen, act } from "@testing-library/react-native";
 import ContratsScreen from "../../app/(tabs)/contrats";
 import AccueilScreen from "../../app/(tabs)/index";
 import { ContratsProvider, useContrats } from "../../contexts/ContratsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ProfilsProvider, useProfils } from "../../contexts/ProfilsContext";
 import { FormationsProvider } from "../../contexts/FormationsContext";
 import { EnseignementsProvider, useEnseignements } from "../../contexts/EnseignementsContext";
@@ -48,13 +49,15 @@ function SetupAccueil() {
 const renderContrats = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <SetupContrats />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <SetupContrats />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();
@@ -64,13 +67,15 @@ const renderContrats = async () => {
 const renderAccueil = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <SetupAccueil />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <SetupAccueil />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();

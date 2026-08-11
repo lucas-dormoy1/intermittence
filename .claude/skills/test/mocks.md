@@ -116,6 +116,38 @@ await waitFor(() => {
 
 **Important** : utiliser `vue.unmount()` (pas `cleanup()`) pour éviter les erreurs "Can't access .root on unmounted test renderer".
 
+## contexts/GoogleAuthContext (useGoogleAuth)
+
+Tout écran qui rend `GoogleAuthProvider` (ex: `EcranOnboarding`, `PanneauProfils`) déclenche pour de vrai le flow `expo-auth-session` si le contexte n'est pas mocké, qui plante en environnement Jest (`expo-linking needs access to the expo-constants manifest`). Mocker le module entier avec la factory partagée :
+
+```tsx
+jest.mock("../../contexts/GoogleAuthContext", () =>
+  require("../helpers/mocks").mockGoogleAuthContextFactory()
+);
+```
+
+`mockGoogleAuthContextFactory` (dans `tests/helpers/mocks.tsx`) fournit un `GoogleAuthProvider` passthrough et un `useGoogleAuth().obtenirToken` qui résout `"mock-access-token"`, pour que les écrans qui en dépendent puissent se monter sans planter. Si un scénario a besoin de vérifier qu'il a été appelé, `mockObtenirToken` est exporté depuis `../helpers/mocks` (réinitialiser avec `mockObtenirToken.mockClear()` dans `beforeEach`).
+
+## utils/googleDrive (appels réseau Drive)
+
+Pour tester la logique de `ProfilsContext` qui dépend du Drive (`sauvegarderProfilSurDrive`, `restaurerProfilDepuisDrive`) sans réseau réel, mocker le module entier :
+
+```tsx
+const mockTrouverOuCreerDossier = jest.fn();
+const mockTrouverFichierProfil = jest.fn();
+const mockTelechargerFichier = jest.fn();
+const mockTeleverserFichier = jest.fn();
+
+jest.mock("../../utils/googleDrive", () => ({
+  trouverOuCreerDossier: (...args: unknown[]) => mockTrouverOuCreerDossier(...args),
+  trouverFichierProfil: (...args: unknown[]) => mockTrouverFichierProfil(...args),
+  telechargerFichier: (...args: unknown[]) => mockTelechargerFichier(...args),
+  televerserFichier: (...args: unknown[]) => mockTeleverserFichier(...args),
+}));
+```
+
+Réinitialiser dans `beforeEach` avec `jest.clearAllMocks()`, puis configurer les résolutions par test avec `mockResolvedValue`/`mockResolvedValueOnce`.
+
 ## Factories (données de test)
 
 Les factories partagées sont dans `tests/helpers/factories.ts`. Elles créent des objets avec des defaults raisonnables, surchargés par `overrides`.

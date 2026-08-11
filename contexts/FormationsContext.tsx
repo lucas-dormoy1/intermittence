@@ -27,7 +27,7 @@ function maxId(formations: Formation[]): number {
 }
 
 export function FormationsProvider({ children }: { children: ReactNode }) {
-  const { profilActifId } = useProfils();
+  const { profilActifId, versionDonneesExternes } = useProfils();
   const [formations, setFormations] = useState<Formation[]>([]);
   const [chargementTermine, setChargementTermine] = useState(false);
   const nextId = useRef(1);
@@ -59,7 +59,7 @@ export function FormationsProvider({ children }: { children: ReactNode }) {
     });
 
     return () => { ignore = true; };
-  }, [profilActifId]);
+  }, [profilActifId, versionDonneesExternes]);
 
   const persister = useCallback((nouvellesFormations: Formation[]) => {
     const id = profilActifIdRef.current;

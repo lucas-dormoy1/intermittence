@@ -7,9 +7,7 @@ module.exports = {
     "<rootDir>/tests/unit/**/*.test.ts",
     "<rootDir>/tests/unit/**/*.test.tsx",
   ],
-  setupFiles: expoPreset.setupFiles?.filter(
-    (f) => !f.replace(/\\/g, "/").includes("jest-expo/src/preset/setup")
-  ),
+  setupFiles: expoPreset.setupFiles,
   moduleNameMapper: {
     "^@expo/vector-icons(.*)$": "<rootDir>/tests/__mocks__/@expo/vector-icons.js",
     "^@react-native-async-storage/async-storage$":

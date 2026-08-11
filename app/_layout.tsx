@@ -13,8 +13,10 @@ import {
 import { colors } from "../theme/colors";
 import { ContratsProvider } from "../contexts/ContratsContext";
 import { FormationsProvider } from "../contexts/FormationsContext";
+import { EmployeursProvider } from "../contexts/EmployeursContext";
 import { EnseignementsProvider } from "../contexts/EnseignementsContext";
 import { ProfilsProvider, useProfils } from "../contexts/ProfilsContext";
+import { GoogleAuthProvider } from "../contexts/GoogleAuthContext";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import EcranOnboarding from "../components/EcranOnboarding";
 import { styles } from "../styles/root-layout.styles";
@@ -67,6 +69,16 @@ function AppContent() {
             headerLeft: () => <BoutonRetour />,
           }}
         />
+        <Stack.Screen
+          name="simulation-are"
+          options={{
+            headerShown: true,
+            title: "Simulation ARE",
+            headerStyle: { backgroundColor: colors.primary },
+            headerTintColor: colors.textOnPrimary,
+            headerLeft: () => <BoutonRetour />,
+          }}
+        />
       </Stack>
     </View>
   );
@@ -90,16 +102,19 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <ProfilsProvider>
-        <ContratsProvider>
-          <FormationsProvider>
-            <EnseignementsProvider>
-              <AppContent />
-            </EnseignementsProvider>
-          </FormationsProvider>
-        </ContratsProvider>
-      </ProfilsProvider>
+      <GoogleAuthProvider>
+        <ProfilsProvider>
+          <EmployeursProvider>
+            <ContratsProvider>
+              <FormationsProvider>
+                <EnseignementsProvider>
+                  <AppContent />
+                </EnseignementsProvider>
+              </FormationsProvider>
+            </ContratsProvider>
+          </EmployeursProvider>
+        </ProfilsProvider>
+      </GoogleAuthProvider>
     </ErrorBoundary>
   );
 }
-

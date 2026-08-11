@@ -52,6 +52,13 @@ export const simulateDayPress = (isoDate: string) => {
   });
 };
 
+export const mockObtenirToken = jest.fn().mockResolvedValue("mock-access-token");
+
+export const mockGoogleAuthContextFactory = () => ({
+  GoogleAuthProvider: ({ children }: { children: any }) => children,
+  useGoogleAuth: () => ({ obtenirToken: mockObtenirToken, seDeconnecter: jest.fn() }),
+});
+
 export const mockCalendarsFactory = () => {
   const { View, Text } = require("react-native");
   return {

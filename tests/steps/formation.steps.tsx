@@ -3,6 +3,7 @@ import { render, screen, act } from "@testing-library/react-native";
 import AccueilScreen from "../../app/(tabs)/index";
 import DetailMoisScreen from "../../app/mois/[moisIndex]";
 import { ContratsProvider, useContrats } from "../../contexts/ContratsContext";
+import { EmployeursProvider } from "../../contexts/EmployeursContext";
 import { ProfilsProvider, useProfils } from "../../contexts/ProfilsContext";
 import { FormationsProvider, useFormations } from "../../contexts/FormationsContext";
 import { EnseignementsProvider } from "../../contexts/EnseignementsContext";
@@ -63,13 +64,15 @@ function SetupMois() {
 const renderAccueil = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <SetupAccueil />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <SetupAccueil />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();
@@ -79,13 +82,15 @@ const renderAccueil = async () => {
 const renderMois = async () => {
   const result = render(
     <ProfilsProvider>
-      <ContratsProvider>
-        <FormationsProvider>
-          <EnseignementsProvider>
-            <SetupMois />
-          </EnseignementsProvider>
-        </FormationsProvider>
-      </ContratsProvider>
+      <EmployeursProvider>
+        <ContratsProvider>
+          <FormationsProvider>
+            <EnseignementsProvider>
+              <SetupMois />
+            </EnseignementsProvider>
+          </FormationsProvider>
+        </ContratsProvider>
+      </EmployeursProvider>
     </ProfilsProvider>
   );
   await flushAsync();

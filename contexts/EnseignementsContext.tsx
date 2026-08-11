@@ -27,7 +27,7 @@ function maxId(enseignements: Enseignement[]): number {
 }
 
 export function EnseignementsProvider({ children }: { children: ReactNode }) {
-  const { profilActifId } = useProfils();
+  const { profilActifId, versionDonneesExternes } = useProfils();
   const [enseignements, setEnseignements] = useState<Enseignement[]>([]);
   const [chargementTermine, setChargementTermine] = useState(false);
   const nextId = useRef(1);
@@ -59,7 +59,7 @@ export function EnseignementsProvider({ children }: { children: ReactNode }) {
     });
 
     return () => { ignore = true; };
-  }, [profilActifId]);
+  }, [profilActifId, versionDonneesExternes]);
 
   const persister = useCallback((nouveauxEnseignements: Enseignement[]) => {
     const id = profilActifIdRef.current;

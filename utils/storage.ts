@@ -37,6 +37,10 @@ export function cleProfilData(profilId: string, type: TypeDonneeProfil): string 
   return `intermittence:profil:${profilId}:${type}`;
 }
 
+export function cleBackupRestauration(profilId: string): string {
+  return `intermittence:profil:${profilId}:backupAvantRestauration`;
+}
+
 export async function chargerParCle<T>(cle: string): Promise<T | null> {
   try {
     const json = await AsyncStorage.getItem(cle);

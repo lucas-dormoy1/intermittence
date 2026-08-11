@@ -207,6 +207,13 @@ export default function AccueilScreen() {
           >
             <Text style={styles.btnDetailCalculText}>Voir le détail du calcul</Text>
           </Pressable>
+          <Pressable
+            testID="btn-simulation-are"
+            style={styles.btnDetailCalcul}
+            onPress={() => router.push("/simulation-are")}
+          >
+            <Text style={styles.btnDetailCalculText}>Voir la simulation ARE (12 mois)</Text>
+          </Pressable>
         </View>
       )}
 
